@@ -67,7 +67,7 @@ class LoopInfo {
 public:
   /// \brief Construct a new LoopInfo for the loop with entry Header.
   LoopInfo(llvm::BasicBlock *Header, const LoopAttributes &Attrs,
-           llvm::DebugLoc Location);
+           llvm::DebugLoc Location, uint64_t LoopHash);
 
   /// \brief Get the loop id metadata for this loop.
   llvm::MDNode *getLoopID() const { return LoopID; }
@@ -99,13 +99,13 @@ public:
 
   /// \brief Begin a new structured loop. The set of staged attributes will be
   /// applied to the loop and then cleared.
-  void push(llvm::BasicBlock *Header,
+  void push(llvm::BasicBlock *Header, uint64_t LoopHash,
             llvm::DebugLoc Location = llvm::DebugLoc());
 
   /// \brief Begin a new structured loop. Stage attributes from the Attrs list.
   /// The staged attributes are applied to the loop and then cleared.
   void push(llvm::BasicBlock *Header, clang::ASTContext &Ctx,
-            llvm::ArrayRef<const Attr *> Attrs,
+            llvm::ArrayRef<const Attr *> Attrs, uint64_t LoopHash,
             llvm::DebugLoc Location = llvm::DebugLoc());
 
   /// \brief End the current loop.

@@ -21,6 +21,7 @@
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/MD5.h"
+#include "llvm/Support/Debug.h"
 
 static llvm::cl::opt<bool> EnableValueProfiling(
   "enable-value-profiling", llvm::cl::ZeroOrMore,
@@ -657,6 +658,17 @@ void CodeGenPGO::mapRegionCounters(const Decl *D) {
   assert(Walker.NextCounter > 0 && "no entry counter mapped for decl");
   NumRegionCounters = Walker.NextCounter;
   FunctionHash = Walker.Hash.finalize();
+}
+
+uint64_t LoopHashing::calculateHash(Stmt *LoopStmt) {
+  RegionCounterMap.reset(new llvm::DenseMap<const Stmt *, unsigned>);
+  MapRegionCounters Walker(*RegionCounterMap);
+  Walker.TraverseStmt(LoopStmt);
+  assert(Walker.NextCounter > 0 && "no entry counter mapped for decl");
+  //unsigned NumRegionCounters = Walker.NextCounter;
+  uint64_t LoopHash = Walker.Hash.finalize();
+  llvm::dbgs() << LoopHash << "\n";
+  return LoopHash;
 }
 
 bool CodeGenPGO::skipRegionMappingForDecl(const Decl *D) {

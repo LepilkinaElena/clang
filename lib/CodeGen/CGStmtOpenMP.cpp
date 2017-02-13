@@ -1291,7 +1291,8 @@ void CodeGenFunction::EmitOMPInnerLoop(
   // Start the loop with a block that tests the condition.
   auto CondBlock = createBasicBlock("omp.inner.for.cond");
   EmitBlock(CondBlock);
-  LoopStack.push(CondBlock, Builder.getCurrentDebugLocation());
+  uint64_t LoopHash = LoopHashing().calculateHash(const_cast<Stmt *>(&S));
+  LoopStack.push(CondBlock, LoopHash, Builder.getCurrentDebugLocation());
 
   // If there are any cleanups between here and the loop-exit scope,
   // create a block to stage a loop exit along.
@@ -1692,7 +1693,8 @@ void CodeGenFunction::EmitOMPOuterLoop(bool DynamicOrOrdered, bool IsMonotonic,
   // Start the loop with a block that tests the condition.
   auto CondBlock = createBasicBlock("omp.dispatch.cond");
   EmitBlock(CondBlock);
-  LoopStack.push(CondBlock, Builder.getCurrentDebugLocation());
+  uint64_t LoopHash = LoopHashing().calculateHash(const_cast<OMPLoopDirective *>(&S));
+  LoopStack.push(CondBlock, LoopHash, Builder.getCurrentDebugLocation());
 
   llvm::Value *BoolCondVal = nullptr;
   if (!DynamicOrOrdered) {

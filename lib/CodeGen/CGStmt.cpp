@@ -551,7 +551,6 @@ void CodeGenFunction::EmitGotoStmt(const GotoStmt &S) {
   EmitBranchThroughCleanup(getJumpDestForLabel(S.getLabel()));
 }
 
-
 void CodeGenFunction::EmitIndirectGotoStmt(const IndirectGotoStmt &S) {
   if (const LabelDecl *Target = S.getConstantTarget()) {
     EmitBranchThroughCleanup(getJumpDestForLabel(Target));
@@ -656,8 +655,9 @@ void CodeGenFunction::EmitWhileStmt(const WhileStmt &S,
   // the continue target.
   JumpDest LoopHeader = getJumpDestInCurrentScope("while.cond");
   EmitBlock(LoopHeader.getBlock());
+  uint64_t LoopHash = LoopHashing().calculateHash(const_cast<WhileStmt *>(&S));
 
-  LoopStack.push(LoopHeader.getBlock(), CGM.getContext(), WhileAttrs,
+  LoopStack.push(LoopHeader.getBlock(), CGM.getContext(), WhileAttrs, LoopHash,
                  Builder.getCurrentDebugLocation());
 
   // Create an exit block for when the condition fails, which will
@@ -748,8 +748,8 @@ void CodeGenFunction::EmitDoStmt(const DoStmt &S,
 
   // Emit the body of the loop.
   llvm::BasicBlock *LoopBody = createBasicBlock("do.body");
-
-  LoopStack.push(LoopBody, CGM.getContext(), DoAttrs,
+  uint64_t LoopHash = LoopHashing().calculateHash(const_cast<DoStmt *>(&S));
+  LoopStack.push(LoopBody, CGM.getContext(), DoAttrs, LoopHash,
                  Builder.getCurrentDebugLocation());
 
   EmitBlockWithFallThrough(LoopBody, &S);
@@ -814,8 +814,8 @@ void CodeGenFunction::EmitForStmt(const ForStmt &S,
   JumpDest Continue = getJumpDestInCurrentScope("for.cond");
   llvm::BasicBlock *CondBlock = Continue.getBlock();
   EmitBlock(CondBlock);
-
-  LoopStack.push(CondBlock, CGM.getContext(), ForAttrs, DL);
+  uint64_t LoopHash = LoopHashing().calculateHash(const_cast<ForStmt *>(&S));
+  LoopStack.push(CondBlock, CGM.getContext(), ForAttrs, LoopHash, DL);
 
   // If the for loop doesn't have an increment we can just use the
   // condition as the continue block.  Otherwise we'll need to create
@@ -912,8 +912,8 @@ CodeGenFunction::EmitCXXForRangeStmt(const CXXForRangeStmt &S,
   // later.
   llvm::BasicBlock *CondBlock = createBasicBlock("for.cond");
   EmitBlock(CondBlock);
-
-  LoopStack.push(CondBlock, CGM.getContext(), ForAttrs, DL);
+  uint64_t LoopHash = LoopHashing().calculateHash(const_cast<CXXForRangeStmt *>(&S));
+  LoopStack.push(CondBlock, CGM.getContext(), ForAttrs, LoopHash, DL);
 
   // If there are any cleanups between here and the loop-exit scope,
   // create a block to stage a loop exit along.

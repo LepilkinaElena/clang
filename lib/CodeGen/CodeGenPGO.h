@@ -117,6 +117,13 @@ public:
   }
 };
 
+struct LoopHashing {
+private:
+  std::unique_ptr<llvm::DenseMap<const Stmt *, unsigned>> RegionCounterMap;
+public:
+  uint64_t calculateHash(Stmt *LoopStmt); 
+};
+
 }  // end namespace CodeGen
 }  // end namespace clang
 
