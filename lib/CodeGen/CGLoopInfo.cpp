@@ -16,12 +16,13 @@
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Metadata.h"
+#include "llvm/Support/Debug.h"
 using namespace clang::CodeGen;
 using namespace llvm;
 
 static MDNode *createMetadata(LLVMContext &Ctx, const LoopAttributes &Attrs,
                               llvm::DebugLoc Location, uint64_t LoopHash) {
-
+  static uint64_t IDCounter = 0;
   /*if (!Attrs.IsParallel && Attrs.VectorizeWidth == 0 &&
       Attrs.InterleaveCount == 0 && Attrs.UnrollCount == 0 &&
       Attrs.VectorizeEnable == LoopAttributes::Unspecified &&
@@ -35,7 +36,9 @@ static MDNode *createMetadata(LLVMContext &Ctx, const LoopAttributes &Attrs,
   auto TempNode = MDNode::getTemporary(Ctx, None);
   Args.push_back(TempNode.get());
   // Set ID.
-  Metadata *IDVals[] = {MDString::get(Ctx, "llvm.loop.ast.id " + std::to_string(LoopHash))};
+  Metadata *ASTVals[] = {MDString::get(Ctx, "llvm.loop.ast.id " + std::to_string(LoopHash))};
+  Metadata *IDVals[] = {MDString::get(Ctx, "llvm.loop.id " + std::to_string(IDCounter++))};
+  Args.push_back(MDNode::get(Ctx, ASTVals));
   Args.push_back(MDNode::get(Ctx, IDVals));
   // If we have a valid debug location for the loop, add it.
   if (Location)
@@ -86,7 +89,6 @@ static MDNode *createMetadata(LLVMContext &Ctx, const LoopAttributes &Attrs,
     Metadata *Vals[] = {MDString::get(Ctx, Name)};
     Args.push_back(MDNode::get(Ctx, Vals));
   }
-
   if (Attrs.DistributeEnable != LoopAttributes::Unspecified) {
     Metadata *Vals[] = {MDString::get(Ctx, "llvm.loop.distribute.enable"),
                         ConstantAsMetadata::get(ConstantInt::get(
@@ -97,6 +99,7 @@ static MDNode *createMetadata(LLVMContext &Ctx, const LoopAttributes &Attrs,
 
   // Set the first operand to itself.
   MDNode *LoopID = MDNode::get(Ctx, Args);
+  //dbgs() << LoopID->getNumOperands() << "\n";
   LoopID->replaceOperandWith(0, LoopID);
   return LoopID;
 }

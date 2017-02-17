@@ -667,7 +667,7 @@ uint64_t LoopHashing::calculateHash(Stmt *LoopStmt) {
   assert(Walker.NextCounter > 0 && "no entry counter mapped for decl");
   //unsigned NumRegionCounters = Walker.NextCounter;
   uint64_t LoopHash = Walker.Hash.finalize();
-  llvm::dbgs() << LoopHash << "\n";
+  //llvm::dbgs() << LoopHash << "\n";
   return LoopHash;
 }
 
