@@ -732,7 +732,7 @@ CodeGenAction::CreateASTConsumer(CompilerInstance &CI, StringRef InFile) {
   std::unique_ptr<raw_pwrite_stream> OS = GetOutputStream(CI, InFile, BA);
   if (BA != Backend_EmitNothing && !OS)
     return nullptr;
-
+  GeneralInfo::setInFile(InFile);
   // Load bitcode modules to link with, if we need to.
   if (LinkModules.empty())
     for (auto &I : CI.getCodeGenOpts().LinkBitcodeFiles) {
