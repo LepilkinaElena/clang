@@ -38,6 +38,7 @@ static MDNode *createMetadata(LLVMContext &Ctx, const LoopAttributes &Attrs,
   // Set ID.
   Metadata *ASTVals[] = {MDString::get(Ctx, "llvm.loop.ast.id " + std::to_string(LoopHash))};
   Metadata *IDVals[] = {MDString::get(Ctx, "llvm.loop.id " + std::to_string(IDCounter++))};
+  //errs() << IDCounter << "\n";
   Args.push_back(MDNode::get(Ctx, ASTVals));
   Args.push_back(MDNode::get(Ctx, IDVals));
   // If we have a valid debug location for the loop, add it.
@@ -123,6 +124,18 @@ LoopInfo::LoopInfo(BasicBlock *Header, const LoopAttributes &Attrs,
                    llvm::DebugLoc Location, uint64_t LoopHash)
     : LoopID(nullptr), Header(Header), Attrs(Attrs) {
   LoopID = createMetadata(Header->getContext(), Attrs, Location, LoopHash);
+  for (unsigned i = 1, e = LoopID->getNumOperands(); i < e; ++i) {
+    MDNode *MD = dyn_cast<MDNode>(LoopID->getOperand(i));
+    if (!MD)
+      continue;
+
+    MDString *S = dyn_cast<MDString>(MD->getOperand(0));
+    if (!S)
+      continue;
+
+    if (S->getString().find("llvm.loop.id") == 0)
+      Header->addLoopID(MD);
+  }
 }
 
 void LoopInfoStack::push(BasicBlock *Header, uint64_t LoopHash,
