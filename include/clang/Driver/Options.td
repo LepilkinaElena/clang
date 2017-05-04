@@ -172,6 +172,8 @@ def ccc_print_phases : Flag<["-"], "ccc-print-phases">, InternalDebugOpt,
   HelpText<"Dump list of actions to perform">;
 def ccc_print_bindings : Flag<["-"], "ccc-print-bindings">, InternalDebugOpt,
   HelpText<"Show bindings of tools to actions">;
+def ccc_out_bindings : Flag<["-"], "ccc-out-bindings">, InternalDebugOpt,
+  HelpText<"Show bindings of tools to actions">;
 
 def ccc_arcmt_check : Flag<["-"], "ccc-arcmt-check">, InternalDriverOpt,
   HelpText<"Check for ARC migration issues that need manual handling">;

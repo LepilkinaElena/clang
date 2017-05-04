@@ -494,6 +494,7 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
   // or -b.
   CCCPrintPhases = Args.hasArg(options::OPT_ccc_print_phases);
   CCCPrintBindings = Args.hasArg(options::OPT_ccc_print_bindings);
+
   if (const Arg *A = Args.getLastArg(options::OPT_ccc_gcc_name))
     CCCGenericGCCName = A->getValue();
   CCCUsePCH =
@@ -2287,6 +2288,27 @@ InputInfo Driver::BuildJobsForActionNoCache(
     }
     llvm::errs() << "], output: " << Result.getAsString() << "\n";
   } else {
+    if (Args.hasArg(options::OPT_ccc_out_bindings)) {
+      std::string BindingFileName = Result.getAsString();
+      BindingFileName.erase(0,1);
+      BindingFileName.erase(BindingFileName.end() - 1);
+      BindingFileName += ".bindings";
+      std::error_code EC;
+      llvm::raw_fd_ostream output (BindingFileName, EC, llvm::sys::fs::F_Text);
+
+      if (!EC) {
+        for (unsigned i = 0, e = InputInfos.size(); i != e; ++i) {
+          output << InputInfos[i].getAsString();
+          if (i + 1 != e)
+            output << ", ";
+        }
+        
+      } else {
+        
+        llvm::errs() << "Error opening file with bindings '"
+               << BindingFileName << "\n";
+      }
+    }
     T->ConstructJob(C, *JA, Result, InputInfos,
                     C.getArgsForToolChain(TC, BoundArch), LinkingOutput);
   }
